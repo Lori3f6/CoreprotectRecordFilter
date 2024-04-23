@@ -43,4 +43,12 @@ class UsageRecorder(
         if (!meltDownMap.containsKey(worldUniqueID)) return false
         return meltDownMap[worldUniqueID]!!.contains(locCompressed)
     }
+
+    fun getCurrentlyMeltdownMap(): Map<UUID, Set<Long>> {
+        return meltDownMap
+    }
+
+    fun getCurrentlyMeltdownMapNextInterval(): Map<UUID, Set<Long>> {
+        return meltDownMapNextInterval
+    }
 }

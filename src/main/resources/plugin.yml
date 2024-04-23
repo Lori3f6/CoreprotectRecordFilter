@@ -5,7 +5,8 @@ author: langua
 api-version: 1.20
 depend:
   - CoreProtect
-softdepend:
-  - Multiverse-Core
 libraries:
   - org.jetbrains.kotlin:kotlin-stdlib:1.9.23
+commands:
+  corf:
+    usage: /corf or /corf reload
