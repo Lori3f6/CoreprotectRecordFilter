@@ -1,5 +1,5 @@
 main: blue.melon.corf.SpigotLoader
-version: ${version}
+version: 1.0
 name: CoreProtectRecordFilter
 author: langua
 api-version: 1.20

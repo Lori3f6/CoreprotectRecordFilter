@@ -19,7 +19,8 @@ class SpigotLoader : Listener, JavaPlugin(), CommandExecutor {
     // worldUserUsageMap: user -> UsageRecorder
     private val usageRecorders = HashMap<String, UsageRecorder>()
     private lateinit var config: Config
-    private var blockedRecords = 0
+    private var blockedRecords = 0L
+    private var recordProcessed = 0L
 
     override fun onEnable() {
         dataFolder.mkdir()
@@ -40,7 +41,8 @@ class SpigotLoader : Listener, JavaPlugin(), CommandExecutor {
         if (!configFile.exists()) {
             configFile.createNewFile()
         }
-        blockedRecords = 0
+        blockedRecords = 0L
+        recordProcessed = 0L
         //load config
         config =
             gson.fromJson(configFile.readText(), Config::class.java) ?: Config()
@@ -79,14 +81,21 @@ class SpigotLoader : Listener, JavaPlugin(), CommandExecutor {
             // filter usage
             // show hotspots and blocked records
             sender.sendMessage(
-                Component.text("Current Hotspots", NamedTextColor.DARK_AQUA)
-                    .append(Component.text(": ", NamedTextColor.GRAY))
-
+                Component.text(
+                    "CORF Activation:",
+                    NamedTextColor.DARK_GRAY
+                )
             )
+            var hotSpots = 0
+            var totalMapSize = 0
             usageRecorders.forEach { (user, recorder) ->
+                totalMapSize += recorder.getCurrentOperationCountMap().size
                 recorder.getCurrentlyMeltdownSet().forEach() { location3D ->
+                    hotSpots++
                     sender.sendMessage(
-                        Component.text(user, NamedTextColor.DARK_AQUA)
+                        Component.text("  - ", NamedTextColor.DARK_GRAY).append(
+                            Component.text(user, NamedTextColor.DARK_AQUA)
+                        )
                             .append(
                                 when (Bukkit.getWorld(location3D.worldUniqueID)) {
                                     null -> Component.text(
@@ -103,19 +112,88 @@ class SpigotLoader : Listener, JavaPlugin(), CommandExecutor {
                                     )
                                 }
                             ).append(
-                                Component.text(" x:${location3D.x} y:${location3D.y} z:${location3D.z}")
-                                    .color(NamedTextColor.GRAY)
+                                Component.text(
+                                    " @",
+                                    NamedTextColor.DARK_AQUA
+                                )
+                            ).append(
+                                Component.text(
+                                    " x:",
+                                    NamedTextColor.DARK_GRAY
+                                )
+                            )
+                            .append(
+                                Component.text(
+                                    location3D.x,
+                                    NamedTextColor.DARK_AQUA
+                                )
+                            )
+                            .append(
+                                Component.text(
+                                    " y:",
+                                    NamedTextColor.DARK_GRAY
+                                )
+                            )
+                            .append(
+                                Component.text(
+                                    location3D.y,
+                                    NamedTextColor.DARK_AQUA
+                                )
+                            )
+                            .append(
+                                Component.text(
+                                    " z:",
+                                    NamedTextColor.DARK_GRAY
+                                )
+                            )
+                            .append(
+                                Component.text(
+                                    location3D.z,
+                                    NamedTextColor.DARK_AQUA
+                                )
                             )
                     )
 
                 }
             }
+            sender.sendMessage(
+                Component.text("Hotspots: ", NamedTextColor.DARK_GRAY).append(
+                    Component.text(hotSpots, NamedTextColor.DARK_AQUA)
+                )
+
+            )
+            sender.sendMessage(
+                Component.text(
+                    "Total record map size: ",
+                    NamedTextColor.DARK_GRAY
+                )
+                    .append(
+                        Component.text(totalMapSize, NamedTextColor.DARK_AQUA)
+                    )
+            )
+            sender.sendMessage(
+                Component.text("Processed records: ", NamedTextColor.DARK_GRAY)
+                    .append(
+                        Component.text(
+                            recordProcessed,
+                            NamedTextColor.DARK_AQUA
+                        )
+                    )
+            )
 
             sender.sendMessage(
-                Component.text("Filtered records: ")
-                    .color(NamedTextColor.GRAY).append(
-                        Component.text(blockedRecords)
-                            .color(NamedTextColor.DARK_AQUA)
+                Component.text("Filtered records: ", NamedTextColor.DARK_GRAY)
+                    .append(
+                        Component.text(blockedRecords, NamedTextColor.DARK_AQUA)
+                    ).append(
+                        Component.text(
+                            "(${
+                                if (recordProcessed == 0L) "0" else String.format(
+                                    "%.2f",
+                                    blockedRecords.toDouble() / recordProcessed * 100
+                                )
+                            }%)", NamedTextColor.DARK_GRAY
+                        )
                     )
             )
             return true
@@ -138,6 +216,7 @@ class SpigotLoader : Listener, JavaPlugin(), CommandExecutor {
         val usageRecorder = usageRecorders[event.user]!!
         val location3d = Location3D.fromBukkitLocation(event.location)
         usageRecorder.recordUsage(location3d)
+        recordProcessed++
         if (usageRecorder.isMeltDown(location3d)) {
             event.isCancelled = true
             blockedRecords++
@@ -150,6 +229,7 @@ class SpigotLoader : Listener, JavaPlugin(), CommandExecutor {
         val usageRecorder = usageRecorders[event.user]!!
         val location3d = Location3D.fromBukkitLocation(event.location)
         usageRecorder.recordUsage(location3d)
+        recordProcessed++
         if (usageRecorder.isMeltDown(location3d)) {
             event.isCancelled = true
             blockedRecords++

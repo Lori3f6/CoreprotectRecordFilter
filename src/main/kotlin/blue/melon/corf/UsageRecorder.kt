@@ -4,19 +4,18 @@ class UsageRecorder(
     private val meltdownThreshold: Int,
     private val resetIntervalInTick: Int
 ) {
-    // need to be per user, per world
-    // locationBlockMap: location -> count
+    // operationCountMap: location3d -> count
     private val operationCountMap = HashMap<Location3D, Int>()
-    private var meltDownMap = HashSet<Location3D>()
-    private var meltDownMapNextInterval = HashSet<Location3D>()
+    private var meltDownSet = HashSet<Location3D>()
+    private var meltDownSetNextInterval = HashSet<Location3D>()
     private var nextReset = resetIntervalInTick
 
     fun recordUsage(location3D: Location3D) {
         val locationOperationCount =
             operationCountMap.getOrDefault(location3D, 0) + 1
         if (locationOperationCount == meltdownThreshold) {
-            meltDownMapNextInterval.add(location3D)
-            meltDownMap.add(location3D)
+            meltDownSetNextInterval.add(location3D)
+            meltDownSet.add(location3D)
         }
         operationCountMap[location3D] = locationOperationCount
     }
@@ -24,21 +23,25 @@ class UsageRecorder(
     fun tick() {
         if (nextReset-- == 0) {
             nextReset = resetIntervalInTick
-            meltDownMap = meltDownMapNextInterval
-            meltDownMapNextInterval = HashSet()
+            meltDownSet = meltDownSetNextInterval
+            meltDownSetNextInterval = HashSet()
             operationCountMap.clear()
         }
     }
 
     fun isMeltDown(location3D: Location3D): Boolean {
-        return meltDownMap.contains(location3D)
+        return meltDownSet.contains(location3D)
     }
 
     fun getCurrentlyMeltdownSet(): Set<Location3D> {
-        return meltDownMap
+        return meltDownSet
+    }
+
+    fun getCurrentOperationCountMap(): Map<Location3D, Int> {
+        return operationCountMap
     }
 
     fun getCurrentlyMeltdownSetNextInterval(): Set<Location3D> {
-        return meltDownMapNextInterval
+        return meltDownSetNextInterval
     }
 }
