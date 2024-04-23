@@ -79,39 +79,36 @@ class SpigotLoader : Listener, JavaPlugin(), CommandExecutor {
             // filter usage
             // show hotspots and blocked records
             sender.sendMessage(
-                Component.text("Hotspots")
-                    .color(NamedTextColor.GREEN)
+                Component.text("Current Hotspots", NamedTextColor.DARK_AQUA)
+                    .append(Component.text(": ", NamedTextColor.GRAY))
+
             )
             usageRecorders.forEach { (user, recorder) ->
-                recorder.getCurrentlyMeltdownMap()
-                    .forEach { (worldUniqueID, locations) ->
-                        locations.forEach { location ->
-                            val locationDecompressed =
-                                Location3D.getLocationDecompressed(location)
-                            sender.sendMessage(
-                                Component.text(user, NamedTextColor.DARK_AQUA)
-                                    .append(
-                                        when (Bukkit.getWorld(worldUniqueID)) {
-                                            null -> Component.text(
-                                                "@invalid",
-                                                NamedTextColor.RED
-                                            )
-
-                                            else -> Component.text(
-                                                "@${
-                                                    Bukkit.getWorld(
-                                                        worldUniqueID
-                                                    )?.name
-                                                }", NamedTextColor.DARK_GRAY
-                                            )
-                                        }
-                                    ).append(
-                                        Component.text(" x:${locationDecompressed.x} y:${locationDecompressed.y} z:${locationDecompressed.z}")
-                                            .color(NamedTextColor.GRAY)
+                recorder.getCurrentlyMeltdownSet().forEach() { location3D ->
+                    sender.sendMessage(
+                        Component.text(user, NamedTextColor.DARK_AQUA)
+                            .append(
+                                when (Bukkit.getWorld(location3D.worldUniqueID)) {
+                                    null -> Component.text(
+                                        "@invalid",
+                                        NamedTextColor.RED
                                     )
+
+                                    else -> Component.text(
+                                        "@${
+                                            Bukkit.getWorld(
+                                                location3D.worldUniqueID
+                                            )?.name
+                                        }", NamedTextColor.DARK_GRAY
+                                    )
+                                }
+                            ).append(
+                                Component.text(" x:${location3D.x} y:${location3D.y} z:${location3D.z}")
+                                    .color(NamedTextColor.GRAY)
                             )
-                        }
-                    }
+                    )
+
+                }
             }
 
             sender.sendMessage(
@@ -139,10 +136,9 @@ class SpigotLoader : Listener, JavaPlugin(), CommandExecutor {
     fun onCoreProtectPreLogBreak(event: CoreProtectBlockBreakPreLogEvent) {
         if (!usageRecorders.containsKey(event.user)) return
         val usageRecorder = usageRecorders[event.user]!!
-        val worldUniqueId = event.location.world.uid
-        val locationCompressed = Location3D.getLocationCompressed(event.location)
-        usageRecorder.recordUsage(worldUniqueId, locationCompressed)
-        if (usageRecorder.isMeltDown(worldUniqueId,locationCompressed)) {
+        val location3d = Location3D.fromBukkitLocation(event.location)
+        usageRecorder.recordUsage(location3d)
+        if (usageRecorder.isMeltDown(location3d)) {
             event.isCancelled = true
             blockedRecords++
         }
@@ -152,10 +148,9 @@ class SpigotLoader : Listener, JavaPlugin(), CommandExecutor {
     fun onCoreProtectPreLogPlace(event: CoreProtectBlockPlacePreLogEvent) {
         if (!usageRecorders.containsKey(event.user)) return
         val usageRecorder = usageRecorders[event.user]!!
-        val worldUniqueId = event.location.world.uid
-        val locationCompressed = Location3D.getLocationCompressed(event.location)
-        usageRecorder.recordUsage(worldUniqueId, locationCompressed)
-        if (usageRecorder.isMeltDown(worldUniqueId,locationCompressed)) {
+        val location3d = Location3D.fromBukkitLocation(event.location)
+        usageRecorder.recordUsage(location3d)
+        if (usageRecorder.isMeltDown(location3d)) {
             event.isCancelled = true
             blockedRecords++
         }

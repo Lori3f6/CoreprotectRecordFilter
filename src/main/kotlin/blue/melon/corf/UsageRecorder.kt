@@ -1,54 +1,44 @@
 package blue.melon.corf
 
-import java.util.*
-
 class UsageRecorder(
     private val meltdownThreshold: Int,
     private val resetIntervalInTick: Int
 ) {
     // need to be per user, per world
-    // locationBlockMap: worldUUID - > map(location -> count)
-    private val operationCountMap = HashMap<UUID, HashMap<Long, Int>>()
-    private var meltDownMap = HashMap<UUID, HashSet<Long>>()
-    private var meltDownMapNextInterval = HashMap<UUID, HashSet<Long>>()
-    private var nextReset = resetIntervalInTick;
+    // locationBlockMap: location -> count
+    private val operationCountMap = HashMap<Location3D, Int>()
+    private var meltDownMap = HashSet<Location3D>()
+    private var meltDownMapNextInterval = HashSet<Location3D>()
+    private var nextReset = resetIntervalInTick
 
-    fun recordUsage(worldUniqueID: UUID, locCompressed: Long) {
+    fun recordUsage(location3D: Location3D) {
         val locationOperationCount =
-            operationCountMap.getOrPut(worldUniqueID) { HashMap() }
-        val count = locationOperationCount.getOrDefault(
-            locCompressed, 0
-        ) + 1
-        if (count == meltdownThreshold) {
-
-            val meltDownNextIntervalSet = meltDownMapNextInterval.getOrPut(worldUniqueID) { HashSet() }
-            meltDownNextIntervalSet.add(locCompressed)
-
-            val meltDownCurrentIntervalSet = meltDownMap.getOrPut(worldUniqueID) { HashSet() }
-            meltDownCurrentIntervalSet.add(locCompressed)
+            operationCountMap.getOrDefault(location3D, 0) + 1
+        if (locationOperationCount == meltdownThreshold) {
+            meltDownMapNextInterval.add(location3D)
+            meltDownMap.add(location3D)
         }
-        locationOperationCount[locCompressed] = count
+        operationCountMap[location3D] = locationOperationCount
     }
 
     fun tick() {
         if (nextReset-- == 0) {
             nextReset = resetIntervalInTick
             meltDownMap = meltDownMapNextInterval
-            meltDownMapNextInterval = HashMap()
+            meltDownMapNextInterval = HashSet()
             operationCountMap.clear()
         }
     }
 
-    fun isMeltDown(worldUniqueID: UUID, locCompressed: Long): Boolean {
-        if (!meltDownMap.containsKey(worldUniqueID)) return false
-        return meltDownMap[worldUniqueID]!!.contains(locCompressed)
+    fun isMeltDown(location3D: Location3D): Boolean {
+        return meltDownMap.contains(location3D)
     }
 
-    fun getCurrentlyMeltdownMap(): Map<UUID, Set<Long>> {
+    fun getCurrentlyMeltdownSet(): Set<Location3D> {
         return meltDownMap
     }
 
-    fun getCurrentlyMeltdownMapNextInterval(): Map<UUID, Set<Long>> {
+    fun getCurrentlyMeltdownSetNextInterval(): Set<Location3D> {
         return meltDownMapNextInterval
     }
 }
