@@ -7,7 +7,7 @@ version = "1.0"
 
 repositories {
     mavenLocal()
-//    maven("https://maven.playpro.com")
+    maven("https://maven.playpro.com")
     maven("https://repo.papermc.io/repository/maven-public/")
 }
 
@@ -26,7 +26,7 @@ dependencies {
     compileOnly(
         group = "net.coreprotect",
         name = "coreprotect",
-        version = "22.2"
+        version = "22.4"
     )
 }
 
