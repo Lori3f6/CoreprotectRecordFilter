@@ -6,7 +6,7 @@ api-version: 1.20
 depend:
   - CoreProtect
 libraries:
-  - org.jetbrains.kotlin:kotlin-stdlib:1.9.23
+  - org.jetbrains.kotlin:kotlin-stdlib:2.0.22
 commands:
   corf:
     usage: /corf or /corf reload
