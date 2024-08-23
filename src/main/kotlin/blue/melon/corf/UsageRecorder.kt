@@ -1,13 +1,18 @@
 package blue.melon.corf
 
+import java.util.*
+import java.util.concurrent.ConcurrentHashMap
+
 class UsageRecorder(
     private val meltdownThreshold: Int,
     private val resetIntervalInTick: Int
 ) {
     // operationCountMap: location3d -> count
-    private val operationCountMap = HashMap<Location3D, Int>()
-    private var meltDownSet = HashSet<Location3D>()
-    private var meltDownSetNextInterval = HashSet<Location3D>()
+    private val operationCountMap = ConcurrentHashMap<Location3D, Int>()
+    private var meltDownSet =
+        Collections.newSetFromMap(ConcurrentHashMap<Location3D, Boolean>())
+    private var meltDownSetNextInterval =
+        Collections.newSetFromMap(ConcurrentHashMap<Location3D, Boolean>())
     private var nextReset = resetIntervalInTick
 
     fun recordUsage(location3D: Location3D) {

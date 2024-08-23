@@ -14,10 +14,11 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 
 class SpigotLoader : Listener, JavaPlugin(), CommandExecutor {
     // worldUserUsageMap: user -> UsageRecorder
-    private val usageRecorders = HashMap<String, UsageRecorder>()
+    private val usageRecorders = ConcurrentHashMap<String, UsageRecorder>()
     private lateinit var config: Config
     private var blockedRecords = 0L
     private var recordProcessed = 0L
@@ -212,8 +213,7 @@ class SpigotLoader : Listener, JavaPlugin(), CommandExecutor {
 
     @EventHandler(ignoreCancelled = true)
     fun onCoreProtectPreLogBreak(event: CoreProtectBlockBreakPreLogEvent) {
-        if (!usageRecorders.containsKey(event.user)) return
-        val usageRecorder = usageRecorders[event.user]!!
+        val usageRecorder = usageRecorders[event.user] ?: return
         val location3d = Location3D.fromBukkitLocation(event.location)
         usageRecorder.recordUsage(location3d)
         recordProcessed++
@@ -225,8 +225,7 @@ class SpigotLoader : Listener, JavaPlugin(), CommandExecutor {
 
     @EventHandler
     fun onCoreProtectPreLogPlace(event: CoreProtectBlockPlacePreLogEvent) {
-        if (!usageRecorders.containsKey(event.user)) return
-        val usageRecorder = usageRecorders[event.user]!!
+        val usageRecorder = usageRecorders[event.user] ?: return
         val location3d = Location3D.fromBukkitLocation(event.location)
         usageRecorder.recordUsage(location3d)
         recordProcessed++
