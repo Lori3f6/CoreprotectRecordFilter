@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder
 import net.coreprotect.event.CoreProtectBlockBreakPreLogEvent
 import net.coreprotect.event.CoreProtectBlockPlacePreLogEvent
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
@@ -93,18 +94,19 @@ class SpigotLoader : Listener, JavaPlugin(), CommandExecutor {
                 totalMapSize += recorder.getCurrentOperationCountMap().size
                 recorder.getCurrentlyMeltdownSet().forEach() { location3D ->
                     hotSpots++
+                    val world = Bukkit.getWorld(location3D.worldUniqueID)
                     sender.sendMessage(
                         Component.text("  - ", NamedTextColor.DARK_GRAY).append(
                             Component.text(user, NamedTextColor.DARK_AQUA)
                         )
                             .append(
-                                when (Bukkit.getWorld(location3D.worldUniqueID)) {
-                                    null -> Component.text(
+                                if (world == null) {
+                                    Component.text(
                                         "@invalid",
                                         NamedTextColor.RED
                                     )
-
-                                    else -> Component.text(
+                                } else {
+                                    Component.text(
                                         "@${
                                             Bukkit.getWorld(
                                                 location3D.worldUniqueID
@@ -152,6 +154,18 @@ class SpigotLoader : Listener, JavaPlugin(), CommandExecutor {
                                     location3D.z,
                                     NamedTextColor.DARK_AQUA
                                 )
+                            ).clickEvent(
+                                ClickEvent.runCommand("/co teleport ${world?.name ?: "invalid"} ${location3D.x} ${location3D.y} ${location3D.z}")
+                            ).hoverEvent(
+                                Component.text(
+                                    "#${hotSpots}",
+                                    NamedTextColor.DARK_AQUA
+                                ).append(
+                                    Component.text(
+                                        " (Click to Teleport)",
+                                        NamedTextColor.DARK_GRAY
+                                    )
+                                )
                             )
                     )
 
@@ -188,7 +202,7 @@ class SpigotLoader : Listener, JavaPlugin(), CommandExecutor {
                         Component.text(blockedRecords, NamedTextColor.DARK_AQUA)
                     ).append(
                         Component.text(
-                            "(${
+                            " (${
                                 if (recordProcessed == 0L) "0" else String.format(
                                     "%.2f",
                                     blockedRecords.toDouble() / recordProcessed * 100

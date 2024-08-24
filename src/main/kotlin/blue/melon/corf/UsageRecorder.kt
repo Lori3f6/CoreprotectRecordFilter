@@ -18,7 +18,7 @@ class UsageRecorder(
     fun recordUsage(location3D: Location3D) {
         val locationOperationCount =
             operationCountMap.getOrDefault(location3D, 0) + 1
-        if (locationOperationCount == meltdownThreshold) {
+        if (locationOperationCount >= meltdownThreshold) {
             meltDownSetNextInterval.add(location3D)
             meltDownSet.add(location3D)
         }

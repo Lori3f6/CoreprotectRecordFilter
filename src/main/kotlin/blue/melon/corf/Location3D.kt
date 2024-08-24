@@ -31,9 +31,9 @@ data class Location3D(val worldUniqueID: UUID, val x: Int, val y: Int, val z: In
 
     override fun hashCode(): Int {
         var result = worldUniqueID.hashCode()
-        result = 31 * result + x
-        result = 31 * result + y
-        result = 31 * result + z
+        result = 251 * result + x
+        result = 251 * result + y
+        result = 251 * result + z
         return result
     }
 }
