@@ -23,6 +23,7 @@ class SpigotLoader : Listener, JavaPlugin(), CommandExecutor {
     private lateinit var config: Config
     private var blockedRecords = 0L
     private var recordProcessed = 0L
+    private var lastReload = 0L
 
     override fun onEnable() {
         dataFolder.mkdir()
@@ -51,6 +52,7 @@ class SpigotLoader : Listener, JavaPlugin(), CommandExecutor {
         //save updated config
         configFile.writeText(gson.toJson(config))
         usageRecorders.clear()
+        lastReload = System.currentTimeMillis()
         //initialize user map
         config.usageLimit.forEach { (userName, limit) ->
             usageRecorders[userName] = UsageRecorder(
@@ -172,10 +174,12 @@ class SpigotLoader : Listener, JavaPlugin(), CommandExecutor {
                 }
             }
             sender.sendMessage(
-                Component.text("Hotspots: ", NamedTextColor.DARK_GRAY).append(
-                    Component.text(hotSpots, NamedTextColor.DARK_AQUA)
+                Component.text(hotSpots, NamedTextColor.DARK_AQUA).append(
+                    Component.text(
+                        " hotspots detected",
+                        NamedTextColor.DARK_GRAY
+                    )
                 )
-
             )
             sender.sendMessage(
                 Component.text(
